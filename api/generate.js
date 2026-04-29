@@ -51,9 +51,16 @@ ${description}
 
     const data = await response.json();
 
-    res.status(200).json({
-      image: data.data[0].url
-    });
+    console.log(data);
+
+const imageBase64 = data.data[0].b64_json;
+
+const imageUrl =
+  `data:image/png;base64,${imageBase64}`;
+
+res.status(200).json({
+  image: imageUrl
+});
 
   } catch (error) {
 
