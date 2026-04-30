@@ -38,7 +38,7 @@ ${description}
           "Content-Type": "application/json",
 
           "Authorization":
-            `Bearer ${process.env.OPENAI_API_KEY}`
+            `Bearer ${"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"}`
         },
 
         body: JSON.stringify({
