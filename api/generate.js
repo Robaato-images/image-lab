@@ -1,31 +1,19 @@
 export default async function handler(req, res) {
 
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "Method not allowed"
-    });
-  }
-
   try {
+
+    console.log("KEY EXISTS:", !!process.env.OPENAI_API_KEY);
 
     const { description } = req.body;
 
     const prompt = `
-Photorealistic image.
+Create a photorealistic image based ONLY on the explicit details in this description.
 
-ONLY include details explicitly mentioned.
+Do not invent extra objects, scenery, atmosphere, emotions, lighting, symbolism, decorations, or cinematic effects.
 
-Do not add:
-- extra objects
-- decorations
-- cinematic lighting
-- rich textures
-- extra scenery
-- implied details
+If the description is vague, the image should remain simple and vague.
 
-Keep the image minimal and literal.
-
-Student description:
+Description:
 ${description}
 `;
 
@@ -33,17 +21,13 @@ ${description}
       "https://api.openai.com/v1/images/generations",
       {
         method: "POST",
-
         headers: {
           "Content-Type": "application/json",
-
-          "Authorization":
-            `Bearer ${"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"}`
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
         },
-
         body: JSON.stringify({
           model: "gpt-image-1",
-          prompt,
+          prompt: prompt,
           size: "1024x1024"
         })
       }
@@ -51,22 +35,30 @@ ${description}
 
     const data = await response.json();
 
-    console.log(data);
+    console.log("OPENAI RESPONSE:", data);
 
-const imageBase64 = data.data[0].b64_json;
+    if (data.error) {
+      return res.status(500).json({
+        error: data.error
+      });
+    }
 
-const imageUrl =
-  `data:image/png;base64,${imageBase64}`;
+    const imageBase64 = data.data[0].b64_json;
 
-res.status(200).json({
-  image: imageUrl
-});
+    const imageUrl = `data:image/png;base64,${imageBase64}`;
+
+    return res.status(200).json({
+      image: imageUrl
+    });
 
   } catch (error) {
 
-    res.status(500).json({
+    console.log("SERVER ERROR:", error);
+
+    return res.status(500).json({
       error: error.message
     });
 
   }
+
 }
